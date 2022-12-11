@@ -1,36 +1,49 @@
 #!/usr/bin/env python
+import argparse
 import os
 import subprocess
-import sys
 from os import environ
 from pathlib import Path
 
 import openai
 
-N_CHOICES = 10
-
 openai.api_key = environ["API_KEY"]
-filename = Path(sys.argv[1])
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("filename", type=Path)
+parser.add_argument("-n", type=int, default=10)
+parser.add_argument("--top-p", type=int, default=1)
+parser.add_argument("--temperature", type=float, default=0.87, )
+parser.add_argument("--max-tokens", type=int, default=256, )
+parser.add_argument("--frequency-penalty", type=int, default=0, )
+parser.add_argument("--presence-penalty", type=int, default=0, )
+
+args = parser.parse_args()
+
+filename = args.filename
 
 with open(filename) as f:
     suffix = f.read()
+
+print(f"Running declare on {filename}")
 
 response = openai.Completion.create(
     model="code-davinci-002",
     prompt="# Add code to pass the test without imports",
     suffix=f"\n\n{suffix}",
-    temperature=0.85,
-    max_tokens=256,
-    n=N_CHOICES,
-    top_p=1,
-    frequency_penalty=0,
-    presence_penalty=0
+    temperature=args.temperature,
+    max_tokens=args.max_tokens,
+    n=args.n,
+    top_p=args.top_p,
+    frequency_penalty=args.frequency_penalty,
+    presence_penalty=args.presence_penalty,
 )
 
 print("Result created. Testing.")
 
 for n, choice in enumerate(response["choices"]):
-    print(f"Testing choice {n + 1}/{N_CHOICES}")
+    print(f"Testing choice {n + 1}/{args.n}")
 
     text = choice["text"]
     print(text)
