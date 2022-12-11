@@ -1,6 +1,7 @@
 from os import environ
 from pathlib import Path
 from sys import argv
+from time import sleep
 
 import openai
 import pytest as pytest
@@ -34,6 +35,8 @@ for attempt in range(N_ATTEMPTS):
 
     with open(generated_name, "w+") as f:
         f.write(f"{result}\n\n{suffix}")
+
+    sleep(1)
 
     code = pytest.main([str(generated_name)])
 
