@@ -7,7 +7,7 @@ from pathlib import Path
 
 import openai
 
-N_CHOICES = 20
+N_CHOICES = 10
 
 openai.api_key = environ["API_KEY"]
 filename = Path(sys.argv[1])
