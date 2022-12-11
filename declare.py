@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from os import environ
 from pathlib import Path
 from sys import argv
