@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import os
 import subprocess
 import sys
 from os import environ
@@ -51,6 +51,7 @@ for n, choice in enumerate(response["choices"]):
         exit(0)
     else:
         print("Tests did not pass")
+        os.remove(generated_name)
 
 print("No option worked")
 exit(1)
