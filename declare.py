@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 
+import subprocess
+import sys
 from os import environ
 from pathlib import Path
-from sys import argv
-from time import sleep
 
 import openai
-import pytest as pytest
 
 N_ATTEMPTS = 5
+N_CHOICES = 4
 
 openai.api_key = environ["API_KEY"]
-filename = Path(argv[1])
+filename = Path(sys.argv[1])
 
 with open(filename) as f:
     suffix = f.read()
-
 
 for attempt in range(N_ATTEMPTS):
     print(f"Attempt {attempt + 1}/{N_ATTEMPTS}...")
@@ -23,27 +22,35 @@ for attempt in range(N_ATTEMPTS):
         model="code-davinci-002",
         prompt="# Add code to pass the test without imports",
         suffix=f"\n\n{suffix}",
-        temperature=0.9,
-        max_tokens=512,
+        temperature=0.85,
+        max_tokens=256,
+        n=N_CHOICES,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0
     )
 
-    result = response["choices"][0]["text"]
     print("Result created. Testing.")
 
-    generated_name = filename.with_name(f"{filename.stem}_generated.py")
+    for n, choice in enumerate(response["choices"]):
+        print(f"Testing choice {n + 1}/{N_CHOICES}")
 
-    with open(generated_name, "w+") as f:
-        f.write(f"{result}\n\n{suffix}")
+        text = choice["text"]
+        print(text)
 
-    sleep(1)
+        generated_name = filename.with_name(f"{filename.stem}_generated.py")
 
-    code = pytest.main([str(generated_name)])
+        with open(generated_name, "w+") as f:
+            f.write(f"{text}\n\n{suffix}")
 
-    if code == 0:
-        print(f"Success! Generated code is at {generated_name}")
-        break
-    else:
-        print("Tests did not pass")
+        process = subprocess.Popen(
+            ["pytest", str(generated_name)],
+            stdout=subprocess.PIPE
+        )
+        process.wait()
+
+        if process.returncode == 0:
+            print(f"Success! Generated code is at {generated_name}")
+            exit(0)
+        else:
+            print("Tests did not pass")
