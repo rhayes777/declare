@@ -1,2 +1,5 @@
 .idea/
 .envr
+__pycache__/
+*_generated.py
+
