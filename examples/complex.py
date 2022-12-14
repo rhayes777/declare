@@ -17,7 +17,3 @@ def test_addition(a, b):
 
 def test_multiplication(a, b):
     assert a * b == Complex(-5, 10)
-
-
-def test_division(a, b):
-    assert a / b == Complex(2, 0)

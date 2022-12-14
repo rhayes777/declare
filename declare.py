@@ -15,7 +15,7 @@ parser.add_argument("filename", type=Path)
 parser.add_argument("--prompt", default="Add code to pass the test without imports.")
 parser.add_argument("-n", type=int, default=5)
 parser.add_argument("--top-p", type=int, default=1)
-parser.add_argument("--temperature", type=float, default=0.46, )
+parser.add_argument("--temperature", type=float, default=0.7, )
 parser.add_argument("--max-tokens", type=int, default=626, )
 parser.add_argument("--frequency-penalty", type=int, default=0, )
 parser.add_argument("--presence-penalty", type=int, default=0, )
@@ -31,7 +31,8 @@ with open(filename) as f:
 print(f"Running declare on {filename}")
 
 response = openai.Completion.create(
-    model="code-davinci-002",
+    # model="code-davinci-002",
+    model="text-davinci-003",
     prompt=f"# {prompt}",
     # suffix=f"\n\n{suffix}",
     temperature=args.temperature,
