@@ -3,6 +3,7 @@
 import argparse
 import json
 import pathlib
+import subprocess
 
 parser = argparse.ArgumentParser()
 
@@ -32,5 +33,20 @@ def add_example(test_directory, source_directory):
     with open("example.jsonl", "a+") as f:
         f.write(json.dumps({"prompt": prompt, "completion": completion}) + "\n")
 
+
+args = parser.parse_args()
+test_directory = args.test_directory
+source_directory = args.source_directory
+
+while test_directory.exists() and source_directory.exists():
+    add_example(test_directory, source_directory)
+    result = subprocess.run(
+        ['git', 'checkout', 'HEAD^'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    if result.returncode != 0:
+        raise Exception(result.stderr.decode())
 
 add_example(parser.parse_args().test_directory, parser.parse_args().source_directory)
