@@ -7,8 +7,8 @@ import subprocess
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--test-directory", type=pathlib.Path, required=True)
-parser.add_argument("--source-directory", type=pathlib.Path, required=True)
+parser.add_argument("--test", type=pathlib.Path, required=True)
+parser.add_argument("--source", type=pathlib.Path, required=True)
 
 
 def stringify(directory: pathlib.Path) -> str:
@@ -35,22 +35,13 @@ def add_example(test_directory, source_directory):
 
 
 args = parser.parse_args()
-test_directory = args.test_directory
-source_directory = args.source_directory
-
-parts = source_directory.parts
-for i in range(len(parts)):
-    directory = pathlib.Path(*parts[:len(parts) - i])
-    print(directory)
-    if (directory / ".git").exists():
-        break
-else:
-    raise RuntimeError("Could not find .git directory")
+test_directory = args.test
+source_directory = args.source
 
 while test_directory.exists() and source_directory.exists():
     add_example(test_directory, source_directory)
     result = subprocess.run(
-        ['cd', str(directory), ';', 'git', 'checkout', 'HEAD^'],
+        ['git', 'checkout', 'HEAD^'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
