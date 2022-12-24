@@ -41,7 +41,7 @@ source_directory = args.source_directory
 
 parts = source_directory.parts
 for i in range(len(parts)):
-    directory = pathlib.Path(parts[:len(parts) - i])
+    directory = pathlib.Path(*parts[:len(parts) - i])
     print(directory)
     if (directory / ".git").exists():
         break
