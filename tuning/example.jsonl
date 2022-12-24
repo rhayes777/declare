@@ -1,0 +1,3 @@
+{"prompt": "from example import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n", "completion": "def add(first, second):\n    return first + second\n"}
+{"prompt": "from example import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n\n\ndef test_add_negative():\n    assert add(-1, -2) == -3\n", "completion": "def add(first, second):\n    return first + second\n"}
+{"prompt": "from example import add, multiply\n\n\ndef test_add():\n    assert add(1, 2) == 3\n\n\ndef test_add_negative():\n    assert add(-1, -2) == -3\n\n\ndef test_multiply():\n    assert multiply(1, 2) == 2\n", "completion": "def add(first, second):\n    return first + second\n\n\ndef multiply(first, second):\n    return first * second\n"}
