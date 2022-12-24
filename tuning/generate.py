@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import os
 import pathlib
 import subprocess
 
@@ -48,24 +47,13 @@ for i in range(len(parts)):
 else:
     raise RuntimeError("Could not find .git directory")
 
-original_directory = os.getcwd()
+while test_directory.exists() and source_directory.exists():
+    add_example(test_directory, source_directory)
+    result = subprocess.run(
+        ['cd', str(directory), ';', 'git', 'checkout', 'HEAD^'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
 
-result = subprocess.run(
-    ['cd', str(directory)],
-    stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE,
-)
-
-try:
-    while test_directory.exists() and source_directory.exists():
-        add_example(test_directory, source_directory)
-        result = subprocess.run(
-            ['git', 'checkout', 'HEAD^'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        if result.returncode != 0:
-            raise Exception(result.stderr.decode())
-finally:
-    subprocess.run(['cd', original_directory])
+    if result.returncode != 0:
+        raise Exception(result.stderr.decode())
