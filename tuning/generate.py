@@ -17,7 +17,7 @@ def stringify(directory: pathlib.Path) -> str:
     # Iterate over all the files and directories in the given directory
     for path in directory.rglob('*.py'):
         # Read the contents of the file
-        with open(path, 'r') as f:
+        with open(path) as f:
             file_contents = f.read()
 
         # Add a header line with the file path and the contents of the file to the overall contents string
