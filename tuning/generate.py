@@ -10,5 +10,5 @@ with open(
 ) as f:
     completion = f.read()
 
-with open("example.jsonl", "w+") as f:
-    f.write(json.dumps({"prompt": prompt, "completion": completion}))
+with open("example.jsonl", "a+") as f:
+    f.write(json.dumps({"prompt": prompt, "completion": completion}) + "\n")
