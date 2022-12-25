@@ -61,7 +61,19 @@ for path in test_directory.rglob('test_*.py'):
             cov.load()
             data = cov.get_data()
             for file in data.measured_files():
-                print(data.lines(file))
+                line_numbers = data.lines(file)
+                if len(line_numbers) == 0:
+                    print(f"File {file} was not covered")
+                    continue
+
+                covered_lines = []
+                with open(file) as f:
+                    lines = f.readlines()
+                    for line_number in line_numbers:
+                        covered_lines.append(lines[line_number - 1])
+
+                print("".join(covered_lines))
+
         else:
             # If the tests failed, print an error message
             print("Tests failed, coverage data is not available")
