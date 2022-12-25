@@ -5,6 +5,9 @@ import json
 import pathlib
 import subprocess
 
+import coverage
+import pytest
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--test", type=pathlib.Path, required=True)
@@ -38,13 +41,30 @@ args = parser.parse_args()
 test_directory = args.test
 source_directory = args.source
 
-while test_directory.exists() and source_directory.exists():
-    add_example(test_directory, source_directory)
-    result = subprocess.run(
-        ['git', 'checkout', 'HEAD^'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
 
-    if result.returncode != 0:
-        raise Exception(result.stderr.decode())
+for path in test_directory.rglob('test_*.py'):
+    # Run the tests with the `--cov` option to collect coverage data
+    result = pytest.main([str(path), f"--cov={source_directory}"])
+
+    # Check the exit code of the test run
+    if result == 0:
+        files = coverage.data.CoverageData().measured_files()
+    
+        # Print the list of covered files
+        print(files)
+    else:
+        # If the tests failed, print an error message
+        print("Tests failed, coverage data is not available")
+
+
+def generate_for_git_history():
+    while test_directory.exists() and source_directory.exists():
+        add_example(test_directory, source_directory)
+        result = subprocess.run(
+            ['git', 'checkout', 'HEAD^'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        if result.returncode != 0:
+            raise Exception(result.stderr.decode())
