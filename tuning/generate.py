@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
+import importlib
 import json
 import pathlib
 import subprocess
+import sys
 
 import coverage
 import pytest
@@ -41,20 +43,28 @@ args = parser.parse_args()
 test_directory = args.test
 source_directory = args.source
 
+sys.path.append(str(source_directory.parent))
 
 for path in test_directory.rglob('test_*.py'):
-    # Run the tests with the `--cov` option to collect coverage data
-    result = pytest.main([str(path), f"--cov={source_directory}"])
+    for test_function in [f for f in dir(importlib.import_module(".".join(path.with_suffix("").parts))) if
+                          f.startswith("test_")]:
+        # Run the tests with the `--cov` option to collect coverage data
+        result = pytest.main([str(path), "-k", test_function, f"--cov={source_directory}"])
 
-    # Check the exit code of the test run
-    if result == 0:
-        files = coverage.data.CoverageData().measured_files()
-    
-        # Print the list of covered files
-        print(files)
-    else:
-        # If the tests failed, print an error message
-        print("Tests failed, coverage data is not available")
+        # Check the exit code of the test run
+        if result == 0:
+            print(f"Test run for {path}.{test_function} was successful")
+
+            files = coverage.data.CoverageData().measured_files()
+
+            cov = coverage.Coverage()
+            cov.load()
+            data = cov.get_data()
+            for file in data.measured_files():
+                print(data.lines(file))
+        else:
+            # If the tests failed, print an error message
+            print("Tests failed, coverage data is not available")
 
 
 def generate_for_git_history():
