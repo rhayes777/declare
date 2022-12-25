@@ -69,7 +69,7 @@ for path in test_directory.rglob('test_*.py'):
                 covered_lines = []
                 with open(file) as f:
                     lines = f.readlines()
-                    for line_number in line_numbers:
+                    for line_number in sorted(line_numbers):
                         covered_lines.append(lines[line_number - 1])
 
                 print("".join(covered_lines))
