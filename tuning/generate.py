@@ -39,23 +39,42 @@ def add_example(test_directory, source_directory):
         f.write(json.dumps({"prompt": prompt, "completion": completion}) + "\n")
 
 
-args = parser.parse_args()
-test_directory = args.test
-source_directory = args.source
+class Processor:
+    def __init__(self, source_directory, test_directory):
+        self.source_directory = source_directory
+        self.test_directory = test_directory
 
-sys.path.append(str(source_directory.parent))
+    def lines(self):
+        all_lines = []
 
-for path in test_directory.rglob('test_*.py'):
-    for test_function in [f for f in dir(importlib.import_module(".".join(path.with_suffix("").parts))) if
-                          f.startswith("test_")]:
+        for path in self.test_directory.rglob('test_*.py'):
+            file_processor = FileProcessor(path, self.source_directory)
+            all_lines.extend(file_processor.lines())
+
+        return all_lines
+
+
+class FileProcessor:
+    def __init__(self, path, source_directory):
+        self.path = path
+        self.source_directory = source_directory
+
+    def lines(self):
+        lines = []
+        for test_function in [f for f in dir(importlib.import_module(".".join(self.path.with_suffix("").parts))) if
+                              f.startswith("test_")]:
+            lines.append(self.completion_for_test(test_function))
+        return lines
+
+    def completion_for_test(self, test_function):
         # Run the tests with the `--cov` option to collect coverage data
-        result = pytest.main([str(path), "-k", test_function, f"--cov={source_directory}"])
+        result = pytest.main([str(self.path), "-k", test_function, f"--cov={self.source_directory}"])
+
+        file_results = []
 
         # Check the exit code of the test run
         if result == 0:
-            print(f"Test run for {path}.{test_function} was successful")
-
-            files = coverage.data.CoverageData().measured_files()
+            print(f"Test run for {self.path}.{test_function} was successful")
 
             cov = coverage.Coverage()
             cov.load()
@@ -69,17 +88,50 @@ for path in test_directory.rglob('test_*.py'):
                 covered_lines = []
                 with open(file) as f:
                     lines = f.readlines()
-                    for line_number in sorted(line_numbers):
+
+                    extra_lines = set()
+                    for line_number in line_numbers:
+                        position = line_number - 1
+                        while position >= 0:
+                            position -= 1
+                            if position < 0:
+                                break
+
+                            extra_lines.add(position)
+
+                            line = lines[position]
+                            if line[0] != " ":
+                                break
+
+                    for line_number in sorted({*line_numbers, *extra_lines}):
                         covered_lines.append(lines[line_number - 1])
 
-                print("".join(covered_lines))
+                content = "".join(covered_lines)
+                file_results.append(f"> {file}\n{content}")
 
         else:
             # If the tests failed, print an error message
             print("Tests failed, coverage data is not available")
 
+        return "\n".join(file_results)
 
-def generate_for_git_history():
+
+def main():
+    args = parser.parse_args()
+    test_directory = args.test
+    source_directory = args.source
+
+    sys.path.append(str(source_directory.parent))
+
+    processor = Processor(source_directory, test_directory)
+    print(processor.lines())
+
+
+if __name__ == "__main__":
+    main()
+
+
+def generate_for_git_history(test_directory, source_directory):
     while test_directory.exists() and source_directory.exists():
         add_example(test_directory, source_directory)
         result = subprocess.run(
