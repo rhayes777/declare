@@ -59,11 +59,33 @@ class FileProcessor:
         self.path = path
         self.source_directory = source_directory
 
+    def _full_test(self, test_function):
+        with open(self.path) as f:
+            lines = f.readlines()
+
+        found = False
+        found_lines = []
+
+        for line in lines:
+            if found and not line.startswith(" "):
+                break
+
+            if line.startswith(f"def {test_function}"):
+                found = True
+
+            if found:
+                found_lines.append(line)
+
+        return "".join(found_lines)
+
     def lines(self):
         lines = []
         for test_function in [f for f in dir(importlib.import_module(".".join(self.path.with_suffix("").parts))) if
                               f.startswith("test_")]:
-            lines.append(self.completion_for_test(test_function))
+            test = self._full_test(test_function)
+            completion = self.completion_for_test(test_function)
+
+            lines.append({"prompt": test, "completion": completion})
         return lines
 
     def completion_for_test(self, test_function):
