@@ -107,6 +107,8 @@ class FileProcessor:
                     print(f"File {file} was not covered")
                     continue
 
+                print(f"File {file} was covered")
+
                 covered_lines = []
                 with open(file) as f:
                     lines = f.readlines()
@@ -119,7 +121,7 @@ class FileProcessor:
                             if position < 0:
                                 break
 
-                            extra_lines.add(position)
+                            extra_lines.add(line_number)
 
                             line = lines[position]
                             if line[0] != " ":
@@ -146,7 +148,8 @@ def main():
     sys.path.append(str(source_directory.parent))
 
     processor = Processor(source_directory, test_directory)
-    print(processor.lines())
+    with open(f"{source_directory.name}.jsonl", "w") as f:
+        f.write("\n".join(map(json.dumps, processor.lines())))
 
 
 if __name__ == "__main__":
